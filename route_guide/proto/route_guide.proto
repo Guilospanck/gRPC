@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option go_package = "github.com/Guilospanck/gRPC/route_guide/proto";
+
+package proto;
+
+service RouteGuide {
+    // Simple RPC
+    rpc GetFeature(Point) returns (Feature) {}
+
+    // server-to-client streaming RPC
+    rpc ListFeatures(Rectangle) returns (stream Feature) {}
+
+    // client-to-server streaming RPC
+    rpc RecordRoute(stream Point) returns (RouteSummary) {}
+
+    // bidirectional streaming RPC
+    rpc RouteChat(stream RouteNote) returns (stream RouteNote) {}
+}
+
+// latitude and longitude (+-90 and +-180 inclusive, respectively)
+message Point {
+    int32 latitude = 1;
+    int32 longitude = 2;
+}
+
+// Corners of the rectangle
+message Rectangle {
+    Point lo = 1;
+    Point hi = 2;
+}
+
+// A feature names something at a point. If the feature cannot be
+// named, it returns name as empty.
+message Feature {
+    string name = 1;
+    Point location = 2;
+}
+
+// A message sent while at a given point
+message RouteNote {
+    Point location = 1;
+    string message = 2;
+}
+
+// A RouteSummary is received in response to a RecordRoute RPC.
+// It contains the number of individual points received; the number of
+// detected features and the total distance covered as the cumulative sum of the distance
+// between each point.
+message RouteSummary {
+    int32 point_count = 1;
+    int32 feature_count = 2;
+    int32 distance = 3; // in meters
+    int32 elapsed_time = 4;
+}
