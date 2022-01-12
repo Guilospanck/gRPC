@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
+	"time"
 
 	pb "github.com/Guilospanck/gRPC/route_guide/proto"
 	"google.golang.org/grpc"
@@ -17,6 +19,20 @@ var (
 	caFile             = flag.String("ca_file", "", "The file containing the CA root cert file")
 	serverHostOverride = flag.String("server_host_override", "x.test.example.com", "The server name used to verify the hostname returned by the TLS handshake")
 )
+
+func printFeature(client pb.RouteGuideClient, point *pb.Point) {
+	log.Printf("Getting feature for point (%d, %d)", point.Latitude, point.Longitude)
+
+	// cancels operation if timeout exceeds
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	feature, err := client.GetFeature(ctx, point)
+	if err != nil {
+		log.Fatalf("%v.GetFeatures(_) = _, %v: ", client, err)
+	}
+	log.Println(feature)
+}
 
 func main() {
 	flag.Parse()
@@ -47,5 +63,13 @@ func main() {
 
 	// client stub
 	client := pb.NewRouteGuideClient(conn)
+
+	/*
+	   In gRPC-Go, RPCs operate in blocking/synchronous mode, which means that the RPC
+	   call wait for the server to respond, and wil either return a response or an error.
+	*/
+
+	// simple RPC "Get Feature" valid feature
+	printFeature(client, &pb.Point{Latitude: 409146138, Longitude: -746188906})
 
 }
