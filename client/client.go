@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"io"
 	"log"
 	"time"
 
@@ -32,6 +33,30 @@ func printFeature(client pb.RouteGuideClient, point *pb.Point) {
 		log.Fatalf("%v.GetFeatures(_) = _, %v: ", client, err)
 	}
 	log.Println(feature)
+}
+
+func printFeatures(client pb.RouteGuideClient, rectangle *pb.Rectangle) {
+	log.Printf("Looking for features in rectangle %v", rectangle)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	stream, err := client.ListFeatures(ctx, rectangle)
+	if err != nil {
+		log.Fatalf("%v.ListFeatures(_) = _, %v", client, err)
+	}
+
+	for {
+		feature, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("%v.ListFeatures(_) = _, %v", client, err)
+		}
+		log.Println(feature)
+	}
+
 }
 
 func main() {
@@ -71,5 +96,13 @@ func main() {
 
 	// simple RPC "Get Feature" valid feature
 	printFeature(client, &pb.Point{Latitude: 409146138, Longitude: -746188906})
+	// feature missing
+	printFeature(client, &pb.Point{Latitude: 0, Longitude: 0})
+
+	// Looking for features between 40, -75 and 42, -73.
+	printFeatures(client, &pb.Rectangle{
+		Lo: &pb.Point{Latitude: 400000000, Longitude: -750000000},
+		Hi: &pb.Point{Latitude: 420000000, Longitude: -730000000},
+	})
 
 }
