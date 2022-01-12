@@ -31,6 +31,7 @@ var (
 
 // implements the generated RouteGuideServer (line 148 of route_guide_grpc.pb.go)
 type routeGuideServer struct {
+	pb.UnimplementedRouteGuideServer
 	savedFeatures []*pb.Feature
 	routeNotes    map[string][]*pb.RouteNote
 	mu            sync.Mutex
@@ -216,7 +217,7 @@ func (s *routeGuideServer) loadFeatures(filePath string) {
 
 	// parses data
 	if err := json.Unmarshal(data, &s.savedFeatures); err != nil {
-		log.Fatalf("Failed to load default features: &v", err)
+		log.Fatalf("Failed to load default features: %v", err)
 	}
 }
 
