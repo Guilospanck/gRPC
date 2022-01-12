@@ -5,6 +5,7 @@ import (
 	"flag"
 	"io"
 	"log"
+	"math/rand"
 	"time"
 
 	pb "github.com/Guilospanck/gRPC/route_guide/proto"
@@ -56,7 +57,46 @@ func printFeatures(client pb.RouteGuideClient, rectangle *pb.Rectangle) {
 		}
 		log.Println(feature)
 	}
+}
 
+func runRecordRoute(client pb.RouteGuideClient) {
+	// creates a random number of random points
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	pointCount := int(r.Int31n(100)) + 2 // traverse at least two points
+
+	var points []*pb.Point
+	for i := 0; i < pointCount; i++ {
+		points = append(points, randomPoint(r))
+	}
+	log.Printf("Traversing %d points.", len(points))
+
+	// context timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	stream, err := client.RecordRoute(ctx)
+	if err != nil {
+		log.Fatalf("%v.RecordRoute(_) = _, %v", client, err)
+	}
+
+	// stream data points to server
+	for _, point := range points {
+		if err := stream.Send(point); err != nil {
+			log.Fatalf("%v.Send(%v) = %v", stream, point, err)
+		}
+	}
+
+	reply, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("%v.CloseAndRecv() got error %v, want %v", stream, err, nil)
+	}
+	log.Printf("Route summary: %v", reply)
+}
+
+func randomPoint(r *rand.Rand) *pb.Point {
+	lat := (r.Int31n(180) - 90) * 1e7
+	long := (r.Int31n(360) - 180) * 1e7
+	return &pb.Point{Latitude: lat, Longitude: long}
 }
 
 func main() {
@@ -95,14 +135,17 @@ func main() {
 	*/
 
 	// simple RPC "Get Feature" valid feature
-	printFeature(client, &pb.Point{Latitude: 409146138, Longitude: -746188906})
+	// printFeature(client, &pb.Point{Latitude: 409146138, Longitude: -746188906})
 	// feature missing
-	printFeature(client, &pb.Point{Latitude: 0, Longitude: 0})
+	// printFeature(client, &pb.Point{Latitude: 0, Longitude: 0})
 
 	// Looking for features between 40, -75 and 42, -73.
-	printFeatures(client, &pb.Rectangle{
-		Lo: &pb.Point{Latitude: 400000000, Longitude: -750000000},
-		Hi: &pb.Point{Latitude: 420000000, Longitude: -730000000},
-	})
+	// printFeatures(client, &pb.Rectangle{
+	// 	Lo: &pb.Point{Latitude: 400000000, Longitude: -750000000},
+	// 	Hi: &pb.Point{Latitude: 420000000, Longitude: -730000000},
+	// })
+
+	// RecordRoute
+	runRecordRoute(client)
 
 }
