@@ -93,6 +93,54 @@ func runRecordRoute(client pb.RouteGuideClient) {
 	log.Printf("Route summary: %v", reply)
 }
 
+func runRouteChat(client pb.RouteGuideClient) {
+	notes := []*pb.RouteNote{
+		{Location: &pb.Point{Latitude: 0, Longitude: 1}, Message: "First message"},
+		{Location: &pb.Point{Latitude: 0, Longitude: 2}, Message: "Second message"},
+		{Location: &pb.Point{Latitude: 0, Longitude: 3}, Message: "Third message"},
+		{Location: &pb.Point{Latitude: 0, Longitude: 4}, Message: "Fourth message"},
+		{Location: &pb.Point{Latitude: 0, Longitude: 5}, Message: "Fifth message"},
+		{Location: &pb.Point{Latitude: 0, Longitude: 6}, Message: "Sixth message"},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// get stream from RouteChat
+	stream, err := client.RouteChat(ctx)
+	if err != nil {
+		log.Fatalf("%v.RouteChat(ctx) = _, %v", client, err)
+	}
+
+	waitc := make(chan struct{})
+
+	// reads from stream
+	go func() {
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				// read done
+				close(waitc)
+				return
+			}
+			if err != nil {
+				log.Fatalf("%v.Recv() = _, %v", stream, err)
+			}
+			log.Printf("Got message %s at point(%d, %d)", in.Message, in.Location.Latitude, in.Location.Longitude)
+		}
+	}()
+
+	// writes to stream
+	for _, note := range notes {
+		if err := stream.Send(note); err != nil {
+			log.Fatalf("%v.Send(_) = %v", stream, err)
+		}
+	}
+
+	stream.CloseSend()
+	<-waitc
+}
+
 func randomPoint(r *rand.Rand) *pb.Point {
 	lat := (r.Int31n(180) - 90) * 1e7
 	long := (r.Int31n(360) - 180) * 1e7
@@ -146,6 +194,9 @@ func main() {
 	// })
 
 	// RecordRoute
-	runRecordRoute(client)
+	// runRecordRoute(client)
+
+	// RouteChat
+	runRouteChat(client)
 
 }
