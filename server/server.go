@@ -102,7 +102,6 @@ func (s *routeGuideServer) RecordRoute(stream pb.RouteGuide_RecordRouteServer) e
 		// updates lastPoint
 		lastPoint = point
 	}
-
 }
 
 func (s *routeGuideServer) RouteChat(stream pb.RouteGuide_RouteChatServer) error {
