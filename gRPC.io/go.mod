@@ -1,12 +1,11 @@
-module github.com/Guilospanck/gRPC/gRPC.io/route_guide/proto
+module github.com/Guilospanck/gRPC/gRPC.io
 
 go 1.17
 
 require (
-	github.com/Guilospanck/gRPC v0.0.0-20220111220751-e852dd311365
 	github.com/golang/protobuf v1.5.2
 	google.golang.org/grpc v1.43.0
-	google.golang.org/grpc/examples v0.0.0-20220111224212-9353ae3bb432
+	google.golang.org/grpc/examples v0.0.0-20220113003412-a002994200f3
 	google.golang.org/protobuf v1.27.1
 )
 
