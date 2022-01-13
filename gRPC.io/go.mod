@@ -1,4 +1,4 @@
-module github.com/Guilospanck/gRPC/route_guide/proto
+module github.com/Guilospanck/gRPC/gRPC.io/route_guide/proto
 
 go 1.17
 

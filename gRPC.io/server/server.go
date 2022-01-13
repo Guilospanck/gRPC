@@ -16,7 +16,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/examples/data"
 
-	pb "github.com/Guilospanck/gRPC/route_guide/proto"
+	pb "github.com/Guilospanck/gRPC/gRPC.io/route_guide/proto"
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
 )

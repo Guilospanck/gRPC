@@ -12,3 +12,16 @@ protoc --go_out=. --go_opt=paths=source_relative \
     proto/route_guide.proto
 ```
 This will generate the interfaces for your proto code.
+
+### Usage
+In one terminal, type in:
+```bash
+cd server/
+go run ./server.go
+```
+
+In another, type in:
+```bash
+cd client/
+go run ./client.go
+```
