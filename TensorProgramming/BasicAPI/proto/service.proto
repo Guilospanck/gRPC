@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package proto;
 
+option go_package = "github.com/Guilospanck/gRPC/TensorProgramming/BasicAPI/proto";
+
 message Request {
   int64 a = 1;
   int64 b = 2;
