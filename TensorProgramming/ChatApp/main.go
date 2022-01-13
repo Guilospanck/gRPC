@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -25,7 +26,17 @@ func init() {
 type Connection struct {
 }
 
-type server struct{}
+type server struct {
+	proto.UnimplementedBroadcastServer
+}
+
+func (s *server) CreateStream(connect *proto.Connect, stream proto.Broadcast_CreateStreamServer) error {
+
+}
+
+func (s *server) BroadcastMessage(ctx context.Context, message *proto.Message) (*proto.Close, error) {
+
+}
 
 func newServer() *server {
 	return &server{}
@@ -34,7 +45,7 @@ func newServer() *server {
 func main() {
 	flag.Parse()
 
-	listener, err := net.Listen("tcp", fmt.Sprint("localhost:%d", *port))
+	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
 	if err != nil {
 		log.Fatalf("Error trying to create tcp listener: %v", err)
 	}
