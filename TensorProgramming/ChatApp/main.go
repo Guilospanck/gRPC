@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 
 	"github.com/Guilospanck/gRPC/TensorProgramming/ChatApp/proto"
 	"google.golang.org/grpc"
@@ -24,18 +25,62 @@ func init() {
 }
 
 type Connection struct {
+	stream proto.Broadcast_CreateStreamServer
+	id     string
+	active bool
+	error  chan error
 }
 
 type server struct {
 	proto.UnimplementedBroadcastServer
+	connections []*Connection
 }
 
 func (s *server) CreateStream(connect *proto.Connect, stream proto.Broadcast_CreateStreamServer) error {
+	conn := &Connection{
+		stream: stream,
+		id:     connect.User.Id,
+		active: true,
+		error:  make(chan error),
+	}
 
+	s.connections = append(s.connections, conn)
+
+	return <-conn.error
 }
 
 func (s *server) BroadcastMessage(ctx context.Context, message *proto.Message) (*proto.Close, error) {
+	wait := sync.WaitGroup{}
+	done := make(chan int)
 
+	for _, conn := range s.connections {
+		wait.Add(1)
+
+		go func(message *proto.Message, conn *Connection) {
+			defer wait.Done()
+
+			if conn.active {
+				err := conn.stream.Send(message)
+				grpcLog.Info("Sending message to: ", conn.stream)
+
+				if err != nil {
+					grpcLog.Errorf("Error trying to send message %s to stream %s - Error %v", message, conn.stream, err)
+					conn.active = false
+					conn.error <- err
+				}
+			}
+
+		}(message, conn)
+
+	}
+
+	go func() {
+		wait.Wait()
+		close(done)
+	}()
+
+	<-done
+	return &proto.Close{}, nil
 }
 
 func newServer() *server {
