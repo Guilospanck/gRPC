@@ -64,7 +64,7 @@ func (s *server) BroadcastMessage(ctx context.Context, message *proto.Message) (
 				grpcLog.Info("Sending message to: ", conn.stream)
 
 				if err != nil {
-					grpcLog.Errorf("Error trying to send message %s to stream %s - Error %v", message, conn.stream, err)
+					grpcLog.Errorf("Error trying to send message to stream %s - Error %v", conn.stream, err)
 					conn.active = false
 					conn.error <- err
 				}
@@ -84,13 +84,14 @@ func (s *server) BroadcastMessage(ctx context.Context, message *proto.Message) (
 }
 
 func newServer() *server {
-	return &server{}
+	var connections []*Connection
+	return &server{connections: connections}
 }
 
 func main() {
 	flag.Parse()
 
-	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		log.Fatalf("Error trying to create tcp listener: %v", err)
 	}
@@ -99,6 +100,8 @@ func main() {
 
 	// create gRPC server
 	grpcServer := grpc.NewServer(opts...)
+
+	grpcLog.Info("Starting server at port :", *port)
 
 	// register our server to gRPC
 	proto.RegisterBroadcastServer(grpcServer, newServer())
