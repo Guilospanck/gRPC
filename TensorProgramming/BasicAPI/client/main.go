@@ -15,7 +15,7 @@ import (
 
 var (
 	serverAddr = flag.String("addr", "localhost:4040", "Address of the gRPC server")
-	port       = flag.Int("port", 8080, "Port of the client API")
+	port       = flag.Int("port", 4040, "Port of the client API")
 )
 
 func main() {

@@ -17,22 +17,30 @@ cd BasicAPI/client/
 go run ./main.go
 ```
 
-By default the server runs on <code>:4040</code> and client runs on <code>:8080</code>.
+By default the server runs on <code>:8080</code> and client runs on <code>:4040</code>.
 
 ## [ChatApp](https://youtu.be/mML6GiOAM1w?list=PLJbE2Yu2zumCe9cO3SIyragJ8pLmVv0z9)
-Simple Chat Application using *gRPC*.
+Simple Chat Application using *gRPC* and *Docker*.
 
 ### Usage
-In one terminal, type in:
+#### Server without Docker
+In one terminal, type the following to run the server:
 ```bash
 cd ChatApp/
 go run ./main.go
 ```
+#### Server with Docker
+```bash
+cd ChatApp/
+sudo docker build -t chat_grpc_server .
+sudo docker run --rm --name chat_grpc_server -it -p 8080:8080 chat_grpc_server
+```
 
-In another, type in:
+#### Client
+In another terminal, type in:
 ```bash
 cd ChatApp/client/
 go run ./main.go
 ```
 
-By default the server runs on <code>:4040</code> and client runs on <code>:8080</code>.
+By default the server runs on <code>:8080</code> and client runs on <code>:4040</code>.
